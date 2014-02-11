@@ -22,12 +22,12 @@ class InstallCommandGenerator(object):
     
     def _symlink_commands(self):
         for src, dst in self._targets:
-            yield self._create_symlink_command(src, dst, os.path.isdir(src))
+            yield self._create_symlink_command(src, dst)
 
-    def _create_symlink_command(self, src, dst, target_is_directory=False):
+    def _create_symlink_command(self, src, dst):
         source = os.path.join(self._env.repositorydir, src)
         destination = dst
-        return SymlinkCommand(source, destination, target_is_directory)
+        return SymlinkCommand(source, destination)
 
 
 class CommandError(Exception):
@@ -39,10 +39,9 @@ class CommandError(Exception):
 
 
 class SymlinkCommand(object):
-    def __init__(self, src, dst, target_is_directory=False):
+    def __init__(self, src, dst):
         self.src = src
         self.dst = dst
-        self.target_is_directory = target_is_directory
 
     @property
     def __src_fullpath(self):
@@ -73,7 +72,8 @@ class SymlinkCommand(object):
 
     def __symlink(self):
         if sys.platform == 'win32':
-            os.symlink(self.__src_fullpath, self.__dst_fullpath, self.target_is_directory)
+            target_is_directory = os.path.isdir(self.__src_fullpath)
+            os.symlink(self.__src_fullpath, self.__dst_fullpath, target_is_directory)
         else:
             os.symlink(self.__src_fullpath, self.__dst_fullpath)
         
