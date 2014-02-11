@@ -3,31 +3,23 @@
 import os
 import sys
 import json
-
-
-class Environment(object):
-    @property
-    def repositorydir(self):
-        return os.path.dirname(os.path.abspath(__file__))
+from itertools import product
 
 
 class InstallCommandGenerator(object):
-    def __init__(self, env, targets):
-        self._env = env
+    def __init__(self, targets):
         self._targets = targets
 
     def __iter__(self):
         for command in self._symlink_commands():
             yield command
-    
+
     def _symlink_commands(self):
         for src, dst in self._targets:
             yield self._create_symlink_command(src, dst)
 
     def _create_symlink_command(self, src, dst):
-        source = os.path.join(self._env.repositorydir, src)
-        destination = dst
-        return SymlinkCommand(source, destination)
+        return SymlinkCommand(src, dst)
 
 
 class CommandError(Exception):
@@ -45,11 +37,14 @@ class SymlinkCommand(object):
 
     @property
     def __src_fullpath(self):
-        return os.path.expanduser(self.src.replace('/', os.path.sep))
+        return self.__fullpath(self.src)
 
     @property
     def __dst_fullpath(self):
-        return os.path.expanduser(self.dst.replace('/', os.path.sep))
+        return self.__fullpath(self.dst)
+
+    def __fullpath(self, path):
+        return os.path.abspath(os.path.expanduser(path.replace('/', os.path.sep)))
 
     def execute(self):
         msg = 'Create symbolic link from `{}\' to `{}\''
@@ -76,32 +71,21 @@ class SymlinkCommand(object):
             os.symlink(self.__src_fullpath, self.__dst_fullpath, target_is_directory)
         else:
             os.symlink(self.__src_fullpath, self.__dst_fullpath)
-        
 
 
-class PlatformFilter(object):
-    def __init__(self, platform=sys.platform):
-        self._platform = platform
+class TargetFiles(object):
+    def __init__(self, src, dst):
+        self.__src = src
+        self.__dst = dst
 
     def __iter__(self):
-        return iter(list())
-
-    def __call__(self, config):
-        for c in config:
-            if self._platform not in c['os']:
-                continue
-            for target in c['targets']:
-                yield tuple(target)
-
-
-def read_file(filepath):
-    with open(filepath) as f:
-        return f.read()
-
+        files = os.listdir(self.__src)
+        directories = (self.__src, self.__dst)
+        return ((os.path.join(src, basename), os.path.join(dst, basename))
+                for ((src, dst), basename) in product((directories, ), files))
+        
 
 def main():
-    env = Environment()
-    config = json.loads(read_file('config.json'))
-    filter = PlatformFilter()
-    for command in InstallCommandGenerator(env, filter(config)):
+    targets = TargetFiles(src='./home', dst='~')
+    for command in InstallCommandGenerator(targets):
         command.execute()
