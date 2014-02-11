@@ -85,7 +85,9 @@ class TargetFiles(object):
                 for ((src, dst), basename) in product((directories, ), files))
         
 
-def main():
-    targets = TargetFiles(src='./home', dst='~')
+def main(dotfiles):
+    src = os.path.join(dotfiles, 'home')
+    dst = '~'
+    targets = TargetFiles(src=src, dst=dst)
     for command in InstallCommandGenerator(targets):
         command.execute()
