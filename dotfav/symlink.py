@@ -5,6 +5,8 @@ import sys
 import json
 from itertools import product
 
+from dotfav.either import Success, Fail
+
 
 class InstallCommandGenerator(object):
     def __init__(self, targets):
@@ -73,21 +75,37 @@ class SymlinkCommand(object):
             os.symlink(self.__src_fullpath, self.__dst_fullpath)
 
 
-class TargetFiles(object):
-    def __init__(self, src, dst):
+class TargetFileCollection(object):
+    def __init__(self, src, dst, files):
         self.__src = src
         self.__dst = dst
+        self.__files = files
 
     def __iter__(self):
-        files = os.listdir(self.__src)
+        files = self.__files
         directories = (self.__src, self.__dst)
         return ((os.path.join(src, basename), os.path.join(dst, basename))
                 for ((src, dst), basename) in product((directories, ), files))
-        
+
+
+def listdir(dirname):
+    try:
+        return Success(os.listdir(dirname))
+    except FileNotFoundError as e:
+        return Fail(e)
+
 
 def main(dotfiles):
     src = os.path.join(dotfiles, 'home')
     dst = '~'
-    targets = TargetFiles(src=src, dst=dst)
-    for command in InstallCommandGenerator(targets):
-        command.execute()
+    files = listdir(src)
+
+    def on_success(files):
+        targets = TargetFileCollection(src=src, dst=dst, files=files)
+        for command in InstallCommandGenerator(targets):
+            command.execute()
+
+    def on_fail(e):
+        print('`{}\': {}'.format(src, e.strerror), file=sys.stderr)
+
+    files.bind(on_success, on_fail)
