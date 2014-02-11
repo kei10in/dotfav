@@ -95,7 +95,9 @@ def listdir(dirname):
         return Fail(e)
 
 
-def main(dotfiles):
+def main(dotfiles=None):
+    dotfiles = '~/.dotfav/dotfiles' if dotfiles is None else dotfiles
+
     src = os.path.join(dotfiles, 'home')
     dst = '~'
     files = listdir(src)
