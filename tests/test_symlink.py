@@ -1,0 +1,55 @@
+# -*- coding: utf-8 -*-
+
+import os
+import shutil
+from utils import *
+
+import dotfav
+
+
+class TestScenario1(object):
+    def setup_method(self, method):
+        remove_temp()
+
+    def test_symlink_do_nothing(self):
+        self.given_there_are_dotfiles_home_directory_in_dotfiles()
+        self.when_dotfiles_home_dicrecotry_contains_no_files()
+        self.run_dotfav_symlink()
+        self.no_files_are_symlinked()
+
+    def test_symlink_file(self):
+        self.given_there_are_dotfiles_home_directory_in_dotfiles()
+        self.when_dotfiles_home_dicrecotry_contains_a_file()
+        self.run_dotfav_symlink()
+        self.dotfav_symlink_creates_a_symlinked_file()
+
+    def given_there_are_dotfiles_home_directory_in_dotfiles(self):
+        create_test_temp_directories()
+        assert os.path.isdir(test_dotfiles_home)
+
+    def when_dotfiles_home_dicrecotry_contains_no_files(self):
+        pass
+
+    def when_dotfiles_home_dicrecotry_contains_a_file(self):
+        create_file_into_dotfiles_home('file')
+        
+    def run_dotfav_symlink(self):
+        dotfav.main('dotfav symlink --home {} --dotfiles {}'.format(
+            test_home, test_dotfiles).split())
+
+    def no_files_are_symlinked(self):
+        def children(path):
+            return (os.path.join(path, x) for x in os.listdir(path))
+
+        assert len([path for path in children(test_home)
+                    if os.path.islink(path)
+                    and os.path.realpath(path).startswith(test_dotfiles_home)]) == 0
+
+    def dotfav_symlink_creates_a_symlinked_file(self):
+        def children(path):
+            return (os.path.join(path, x) for x in os.listdir(path))
+
+        assert len([path for path in children(test_home)
+                    if os.path.islink(path)
+                    and os.path.realpath(path).startswith(test_dotfiles_home)]) == 1
+        

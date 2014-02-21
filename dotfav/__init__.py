@@ -27,12 +27,13 @@ class DotFav(object):
         parser_symlink = subparsers.add_parser('symlink', help='create symbolic links')
         parser_symlink.set_defaults(func=DotFav.symlink)
         parser_symlink.add_argument('--dotfiles', help='specify dotfiles directory')
+        parser_symlink.add_argument('--home', help='specify home directory')
 
         return parser
-        
+
     @staticmethod
-    def symlink(dotfiles=None, **kwds):
-        dotfav.symlink.main(dotfiles)
+    def symlink(dotfiles=None, home=None, **kwds):
+        dotfav.symlink.main(dotfiles, home)
 
     def run(self):
         self._args.func(**vars(self._args))

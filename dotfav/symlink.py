@@ -95,11 +95,12 @@ def listdir(dirname):
         return Fail(e)
 
 
-def main(dotfiles=None):
+def main(dotfiles=None, home=None):
     dotfiles = '~/.dotfav/dotfiles' if dotfiles is None else dotfiles
+    home = '~' if home is None else home
 
     src = os.path.join(dotfiles, 'home')
-    dst = '~'
+    dst = home
     files = listdir(src)
 
     def on_success(files):

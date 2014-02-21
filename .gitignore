@@ -1,3 +1,6 @@
+# tempolary directory for test
+tests/temp
+
 *.py[cod]
 
 # C extensions
