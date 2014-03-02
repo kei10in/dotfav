@@ -50,3 +50,7 @@ def create_file_into_dotfiles_home(filename):
     filepath = test_dotfiles_home.join(filename)
     f = open(filepath, 'w')
     f.close()
+
+def create_directory_into_dotfiles_home(dirpath):
+    dirpath = test_dotfiles_home.join(dirpath)
+    os.mkdir(dirpath)
