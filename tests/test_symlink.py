@@ -11,13 +11,13 @@ class TestScenario1(object):
 
     def test_symlink_do_nothing(self):
         self.given_there_are_dotfiles_home_directory_in_dotfiles()
-        self.when_dotfiles_home_dicrecotry_contains_no_files()
+        self.when_dotfiles_home_directory_contains_no_files()
         self.run_dotfav_symlink()
         self.no_files_are_symlinked()
 
     def test_symlink_file(self):
         self.given_there_are_dotfiles_home_directory_in_dotfiles()
-        self.when_dotfiles_home_dicrecotry_contains_a_file()
+        self.when_dotfiles_home_directory_contains_a_file()
         self.run_dotfav_symlink()
         self.dotfav_symlink_creates_a_symlinked_file()
 
@@ -25,10 +25,10 @@ class TestScenario1(object):
         create_test_temp_directories()
         assert test_dotfiles_home.isdir()
 
-    def when_dotfiles_home_dicrecotry_contains_no_files(self):
+    def when_dotfiles_home_directory_contains_no_files(self):
         pass
 
-    def when_dotfiles_home_dicrecotry_contains_a_file(self):
+    def when_dotfiles_home_directory_contains_a_file(self):
         create_file_into_dotfiles_home('file')
         
     def run_dotfav_symlink(self):
