@@ -38,7 +38,7 @@ class TestScenario1(object):
         create_file_into_dotfiles_home('file')
 
     def when_dotfiles_home_directory_contains_a_directory(self):
-        create_directory_into_dotfiles_home('file')
+        create_directory_into_dotfiles_home('directory')
 
     def run_dotfav_symlink(self):
         dotfav.main('dotfav symlink --home {} --dotfiles {}'.format(
@@ -50,14 +50,17 @@ class TestScenario1(object):
                     and path.realpath().startswith(test_dotfiles_home)]) == 0
 
     def dotfav_symlink_creates_a_symlinked_file(self):
-        assert len([path for path in test_home.children()
-                    if path.islink()
-                    and path.isfile()
-                    and path.realpath().startswith(test_dotfiles_home)]) == 1
+        assert any(
+            [path.isfile() and self.is_symlink_of_dotfiles_home(path)
+             for path in test_home.children()])
 
     def dotfav_symlink_creates_a_symlinked_directory(self):
-        assert len([path for path in test_home.children()
-                    if path.islink()
-                    and path.isdir()
-                    and path.realpath().startswith(test_dotfiles_home)]) == 1
+        assert any(
+            [path.isdir() and self.is_symlink_of_dotfiles_home(path)
+             for path in test_home.children()])
+
+    def is_symlink_of_dotfiles_home(self, symlinkpath):
+        return (symlinkpath.islink() and
+                symlinkpath.realpath().startswith(test_dotfiles_home))
+
 
