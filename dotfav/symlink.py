@@ -96,11 +96,9 @@ def listdir(dirname):
         return Fail(e)
 
 
-def symlink_home_files(src, dst, files):
+def symlink_home_files_commands(src, dst, files):
     targets = TargetFileCollection(src=src, dst=dst, files=files)
-    for command in InstallCommandGenerator(targets):
-        command.execute()
-
+    return InstallCommandGenerator(targets)
 
 
 class MappedTargetFileCollection(object):
@@ -114,21 +112,33 @@ class MappedTargetFileCollection(object):
             yield os.path.join(self.__src, f), os.path.join(self.__dst, t)
 
 
-def symlink_mapped_files(src, dst, config_file, platform):
+class MappedFileSymlinkingCommands(object):
+    def __init__(self, src, dst, config, platform):
+        self.__src = src
+        self.__dst = dst
+        self.__config = config
+        self.__platform = platform
+
+    def __iter__(self):
+        mapped_files = self.__reverse_inner_tuple(
+            self.__filter_platform(self.__config, self.__platform))
+        targets = MappedTargetFileCollection(
+            self.__src, self.__dst, mapped_files)
+        return iter(InstallCommandGenerator(targets))
+
+    @staticmethod
+    def __reverse_inner_tuple(iterable):
+        return (tuple(reversed(t)) for t in iterable)
+
+    @staticmethod
+    def __filter_platform(config, platform):
+        return chain(*(c['target'].items() for c in config if platform in c['os']))
+
+
+def mapped_file_symlinking_commands(src, dst, config_file, platform):
     with open(config_file) as f:
         config = json.load(f)
-        mapped_files = reverse_inner_tuple(filter_platform(config, platform))
-        targets = MappedTargetFileCollection(src, dst, mapped_files)
-        for command in InstallCommandGenerator(targets):
-            command.execute()
-
-
-def reverse_inner_tuple(iterable):
-    return (tuple(reversed(t)) for t in iterable)
-
-
-def filter_platform(config, platform):
-    return chain(*(c['target'].items() for c in config if platform in c['os']))
+        return MappedFileSymlinkingCommands(src, dst, config, platform)
 
 
 def main(dotfiles=None, home=None, platform=None):
@@ -139,15 +149,19 @@ def main(dotfiles=None, home=None, platform=None):
 
     src = os.path.join(dotfiles, 'home')
     dst = home
+
+    commands = []
+
     files = listdir(src)
 
-    def on_success(files):
-        symlink_home_files(src, dst, files)
-
-    def on_fail(e):
-        print('`{}\': {}'.format(src, e.strerror), file=sys.stderr)
-
-    files.bind(on_success, on_fail)
+    if files.is_success():
+        commands.extend(symlink_home_files_commands(src, dst, files.value))
+    else:
+        print('`{}\': {}'.format(src, files.value.strerror), file=sys.stderr)
 
     if os.path.isfile(config_file):
-        symlink_mapped_files(src, dst, config_file, platform)
+        commands.extend(
+            mapped_file_symlinking_commands(src, dst, config_file, platform))
+
+    for command in commands:
+        command.execute()
