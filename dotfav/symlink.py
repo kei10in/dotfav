@@ -4,6 +4,7 @@ import os
 import sys
 import json
 from itertools import product
+from itertools import chain
 
 from dotfav.either import Success, Fail
 
@@ -95,20 +96,58 @@ def listdir(dirname):
         return Fail(e)
 
 
-def main(dotfiles=None, home=None):
+def symlink_home_files(src, dst, files):
+    targets = TargetFileCollection(src=src, dst=dst, files=files)
+    for command in InstallCommandGenerator(targets):
+        command.execute()
+
+
+
+class MappedTargetFileCollection(object):
+    def __init__(self, src, dst, mapped_files):
+        self.__src = src
+        self.__dst = dst
+        self.__mapped_files = mapped_files
+
+    def __iter__(self):
+        for f, t in self.__mapped_files:
+            yield os.path.join(self.__src, f), os.path.join(self.__dst, t)
+
+
+def symlink_mapped_files(src, dst, config_file, platform):
+    with open(config_file) as f:
+        config = json.load(f)
+        mapped_files = reverse_inner_tuple(filter_platform(config, platform))
+        targets = MappedTargetFileCollection(src, dst, mapped_files)
+        for command in InstallCommandGenerator(targets):
+            command.execute()
+
+
+def reverse_inner_tuple(iterable):
+    return (tuple(reversed(t)) for t in iterable)
+
+
+def filter_platform(config, platform):
+    return chain(*(c['target'].items() for c in config if platform in c['os']))
+
+
+def main(dotfiles=None, home=None, platform=None):
     dotfiles = '~/.dotfav/dotfiles' if dotfiles is None else dotfiles
     home = '~' if home is None else home
+    platform = sys.platform if platform is None else platform
+    config_file = os.path.join(dotfiles, 'dotfav.config')
 
     src = os.path.join(dotfiles, 'home')
     dst = home
     files = listdir(src)
 
     def on_success(files):
-        targets = TargetFileCollection(src=src, dst=dst, files=files)
-        for command in InstallCommandGenerator(targets):
-            command.execute()
+        symlink_home_files(src, dst, files)
 
     def on_fail(e):
         print('`{}\': {}'.format(src, e.strerror), file=sys.stderr)
 
     files.bind(on_success, on_fail)
+
+    if os.path.isfile(config_file):
+        symlink_mapped_files(src, dst, config_file, platform)

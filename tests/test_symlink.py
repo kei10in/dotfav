@@ -29,14 +29,14 @@ class TestScenario1(object):
         self.run_dotfav_symlink()
         self.dotfav_symlink_creates_a_symlinked_directory()
 
-    def test_symlink_with_map_file(self):
-        self.given_there_are_dotfiles_home_directory_indotfiles()
+    def test_symlink_with_config_file(self):
+        self.given_there_are_dotfiles_home_directory_in_dotfiles()
         self.when_dotfiles_contains_config_file([{
                 'os': ['darwin'],
                 'target': {'file': 'file.darwin'}
             }])
-        self.when_dotfiles_home_contains_a_file_named('file.darwin')
-        self.run_dotfav_symlink()
+        self.when_dotfiles_home_directory_contains_a_file_named('file.darwin')
+        self.run_dotfav_symlink_at_platform('darwin')
         self.dotfav_symlink_creates_a_symlink(
             test_dotfiles_home.join('file.darwin'),
             test_home.join('file'))
@@ -45,9 +45,8 @@ class TestScenario1(object):
         create_test_temp_directories()
         assert test_dotfiles_home.isdir()
 
-    def when_dotfiles_contains_map_file(self, config):
-        with open(test_dotfiles.join('dotfav.config'), mode='w') as f:
-            json.dump(config, f)
+    def when_dotfiles_contains_config_file(self, config):
+        create_config_file(config)
 
     def when_dotfiles_home_directory_contains_no_files(self):
         pass
@@ -62,8 +61,11 @@ class TestScenario1(object):
         create_directory_into_dotfiles_home('directory')
 
     def run_dotfav_symlink(self):
-        dotfav.main('dotfav symlink --home {} --dotfiles {}'.format(
-            test_home, test_dotfiles).split())
+        run_dotfav(command='symlink', home=test_home, dotfiles=test_dotfiles)
+
+    def run_dotfav_symlink_at_platform(self, platform):
+        run_dotfav(command='symlink', home=test_home, dotfiles=test_dotfiles,
+                   platform=platform)
 
     def no_files_are_symlinked(self):
         assert len([path for path in test_home.children()
@@ -87,5 +89,3 @@ class TestScenario1(object):
     def is_symlink_of_dotfiles_home(self, symlinkpath):
         return (symlinkpath.islink() and
                 symlinkpath.realpath().startswith(test_dotfiles_home))
-
-
