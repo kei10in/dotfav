@@ -76,32 +76,31 @@ class SymlinkCommand(object):
             os.symlink(self.__src_fullpath, self.__dst_fullpath)
 
 
-class TargetFileCollection(object):
+class HomeFileCollection(object):
     def __init__(self, src, dst, files):
-        self.__src = src
-        self.__dst = dst
-        self.__files = files
+        self._src = src
+        self._dst = dst
+        self._files = files
 
     def __iter__(self):
-        files = self.__files
-        directories = (self.__src, self.__dst)
+        files = self._files
+        directories = (self._src, self._dst)
         return ((os.path.join(src, basename), os.path.join(dst, basename))
                 for ((src, dst), basename) in product((directories, ), files))
 
 
-def listdir(dirname):
-    try:
-        return Success(os.listdir(dirname))
-    except FileNotFoundError as e:
-        return Fail(e)
+class HomeFileSymlinkingCommands(object):
+    def __init__(self, src, dst, files):
+        self._src = src
+        self._dst = dst
+        self._files = files
+
+    def __iter__(self):
+        targets = HomeFileCollection(src=self._src, dst=self._dst, files=self._files)
+        return iter(InstallCommandGenerator(targets))
 
 
-def symlink_home_files_commands(src, dst, files):
-    targets = TargetFileCollection(src=src, dst=dst, files=files)
-    return InstallCommandGenerator(targets)
-
-
-class MappedTargetFileCollection(object):
+class MappedFileCollection(object):
     def __init__(self, src, dst, mapped_files):
         self.__src = src
         self.__dst = dst
@@ -114,16 +113,15 @@ class MappedTargetFileCollection(object):
 
 class MappedFileSymlinkingCommands(object):
     def __init__(self, src, dst, config, platform):
-        self.__src = src
-        self.__dst = dst
-        self.__config = config
-        self.__platform = platform
+        self._src = src
+        self._dst = dst
+        self._config = config
+        self._platform = platform
 
     def __iter__(self):
         mapped_files = self.__reverse_inner_tuple(
-            self.__filter_platform(self.__config, self.__platform))
-        targets = MappedTargetFileCollection(
-            self.__src, self.__dst, mapped_files)
+            self.__filter_platform(self._config, self._platform))
+        targets = MappedFileCollection(self._src, self._dst, mapped_files)
         return iter(InstallCommandGenerator(targets))
 
     @staticmethod
@@ -135,33 +133,56 @@ class MappedFileSymlinkingCommands(object):
         return chain(*(c['target'].items() for c in config if platform in c['os']))
 
 
-def mapped_file_symlinking_commands(src, dst, config_file, platform):
-    with open(config_file) as f:
-        config = json.load(f)
-        return MappedFileSymlinkingCommands(src, dst, config, platform)
+class Symlink(object):
+    def __init__(self, dotfiles, home, platform):
+        self._dotfiles = dotfiles
+        self._home = home
+        self._platform = platform
+
+        self._config_file = os.path.join(self._dotfiles, 'dotfav.config')
+        self._src = os.path.join(self._dotfiles, 'home')
+        self._dst = self._home
+
+    def run(self):
+        commands = []
+
+        files = self._list_home_targets()
+
+        if files.is_success():
+            commands.extend(self._home_file_symlinking_commands(files.value))
+        else:
+            print('`{}\': {}'.format(src, files.value.strerror), file=sys.stderr)
+            sys.exit(1)
+
+        if os.path.isfile(self._config_file):
+            commands.extend(self._mapped_file_symlinking_commands())
+
+        for command in commands:
+            command.execute()
+
+    def _home_file_symlinking_commands(self, files):
+        return HomeFileSymlinkingCommands(self._src, self._dst, files)
+
+    def _mapped_file_symlinking_commands(self):
+        with open(self._config_file) as f:
+            config = json.load(f)
+            return MappedFileSymlinkingCommands(self._src,
+                                                self._dst,
+                                                config,
+                                                self._platform)
+
+    def _list_home_targets(self):
+        try:
+            return Success(os.listdir(self._src))
+        except FileNotFoundError as e:
+            return Fail(e)
+
 
 
 def main(dotfiles=None, home=None, platform=None):
     dotfiles = '~/.dotfav/dotfiles' if dotfiles is None else dotfiles
     home = '~' if home is None else home
     platform = sys.platform if platform is None else platform
-    config_file = os.path.join(dotfiles, 'dotfav.config')
 
-    src = os.path.join(dotfiles, 'home')
-    dst = home
-
-    commands = []
-
-    files = listdir(src)
-
-    if files.is_success():
-        commands.extend(symlink_home_files_commands(src, dst, files.value))
-    else:
-        print('`{}\': {}'.format(src, files.value.strerror), file=sys.stderr)
-
-    if os.path.isfile(config_file):
-        commands.extend(
-            mapped_file_symlinking_commands(src, dst, config_file, platform))
-
-    for command in commands:
-        command.execute()
+    command = Symlink(dotfiles, home, platform)
+    command.run()
