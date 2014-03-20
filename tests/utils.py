@@ -1,46 +1,16 @@
 # -*- coding: utf-8 -*_
 
-import os
-import shutil
 import json
+from pathlib import Path
 
 import dotfav
 
 
-class Path(str):
-    def remove(self):
-        if self.isdir():
-            shutil.rmtree(test_temp)
-        elif self.isfile():
-            shutil.unlink(test_temp)
-
-    def mkdir(self):
-        os.mkdir(self)
-
-    def children(self):
-        return (self.__class__(os.path.join(self, x)) for x in os.listdir(self))
-
-    def isdir(self):
-        return os.path.isdir(self)
-
-    def isfile(self):
-        return os.path.isfile(self)
-
-    def islink(self):
-        return os.path.islink(self)
-
-    def realpath(self):
-        return self.__class__(os.path.realpath(self))
-
-    def join(self, *args):
-        return self.__class__(os.path.join(self, *args))
-
-
-test_temp = Path(os.path.abspath(os.path.join(os.path.dirname(__file__), 'temp')))
-test_home = Path(os.path.join(test_temp, 'home'))
-test_dotfiles = Path(os.path.join(test_temp, 'dotfiles'))
-test_dotfiles_home = Path(os.path.join(test_dotfiles, 'home'))
-test_dotfiles_config = test_dotfiles.join('dotfav.config')
+test_temp = Path(__file__).parent / 'temp'
+test_home = test_temp / 'home'
+test_dotfiles = test_temp / 'dotfiles'
+test_dotfiles_home = test_dotfiles / 'home'
+test_dotfiles_config = test_dotfiles / 'dotfav.config'
 
 
 def create_test_temp_directories():
@@ -51,18 +21,18 @@ def create_test_temp_directories():
 
 
 def create_file_into_dotfiles_home(filename):
-    filepath = test_dotfiles_home.join(filename)
-    f = open(filepath, 'w')
+    filepath = test_dotfiles_home / filename
+    f = filepath.open(mode='w')
     f.close()
 
 
 def create_directory_into_dotfiles_home(dirpath):
-    dirpath = test_dotfiles_home.join(dirpath)
-    os.mkdir(dirpath)
+    dirpath = test_dotfiles_home / dirpath
+    dirpath.mkdir()
 
 
 def create_config_file(config):
-    with open(test_dotfiles_config, mode='w') as f:
+    with test_dotfiles_config.open(mode='w') as f:
         json.dump(config, f)
 
 

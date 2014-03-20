@@ -51,6 +51,7 @@ setup(
             'dotfav=dotfav:main',
         ],
     },
+    install_requires=['pathlib'],
     tests_require=['pytest'],
     cmdclass = { 'test': PyTest },
 )

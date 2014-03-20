@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 
-import json
+import shutil
 
 from utils import *
-
-import dotfav
 
 
 class TestScenario1(object):
     def setup_method(self, method):
-        test_temp.remove()
+        if test_temp.is_dir():
+            shutil.rmtree(str(test_temp))
+        elif test_temp.is_file():
+            test_temp.unlink()
 
     def test_symlink_do_nothing(self):
         self.given_there_are_dotfiles_home_directory_in_dotfiles()
@@ -38,12 +39,12 @@ class TestScenario1(object):
         self.when_dotfiles_home_directory_contains_a_file_named('file.darwin')
         self.run_dotfav_symlink_at_platform('darwin')
         self.dotfav_symlink_creates_a_symlink(
-            test_dotfiles_home.join('file.darwin'),
-            test_home.join('file'))
+            test_dotfiles_home / 'file.darwin',
+            test_home / 'file')
 
     def given_there_are_dotfiles_home_directory_in_dotfiles(self):
         create_test_temp_directories()
-        assert test_dotfiles_home.isdir()
+        assert test_dotfiles_home.is_dir()
 
     def when_dotfiles_contains_config_file(self, config):
         create_config_file(config)
@@ -61,31 +62,31 @@ class TestScenario1(object):
         create_directory_into_dotfiles_home('directory')
 
     def run_dotfav_symlink(self):
-        run_dotfav(command='symlink', home=test_home, dotfiles=test_dotfiles)
+        run_dotfav(command='symlink', home=str(test_home), dotfiles=str(test_dotfiles))
 
     def run_dotfav_symlink_at_platform(self, platform):
-        run_dotfav(command='symlink', home=test_home, dotfiles=test_dotfiles,
+        run_dotfav(command='symlink', home=str(test_home), dotfiles=str(test_dotfiles),
                    platform=platform)
 
     def no_files_are_symlinked(self):
-        assert len([path for path in test_home.children()
-                    if path.islink()
-                    and path.realpath().startswith(test_dotfiles_home)]) == 0
+        assert len([path for path in test_home.iterdir()
+                    if path.is_symlink()
+                    and path.resolve() in test_dotfiles_home.rglob('*')]) == 0
 
     def dotfav_symlink_creates_a_symlinked_file(self):
         assert any(
-            [path.isfile() and self.is_symlink_of_dotfiles_home(path)
-             for path in test_home.children()])
+            [path.is_file() and self.is_symlink_of_dotfiles_home(path)
+             for path in test_home.iterdir()])
 
     def dotfav_symlink_creates_a_symlinked_directory(self):
         assert any(
-            [path.isdir() and self.is_symlink_of_dotfiles_home(path)
-             for path in test_home.children()])
+            [path.is_dir() and self.is_symlink_of_dotfiles_home(path)
+             for path in test_home.iterdir()])
 
     def dotfav_symlink_creates_a_symlink(self, src, dst):
-        assert dst.islink()
-        assert dst.realpath() == src
+        assert dst.is_symlink()
+        assert dst.resolve() == src
 
     def is_symlink_of_dotfiles_home(self, symlinkpath):
-        return (symlinkpath.islink() and
-                symlinkpath.realpath().startswith(test_dotfiles_home))
+        return (symlinkpath.is_symlink() and
+                symlinkpath.resolve() in test_dotfiles_home.rglob('*'))
