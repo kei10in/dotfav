@@ -6,7 +6,7 @@ import json
 from itertools import product
 from itertools import chain
 
-from dotfav.either import Success, Fail
+from pathlib import Path
 
 
 class InstallCommandGenerator(object):
@@ -40,14 +40,11 @@ class SymlinkCommand(object):
 
     @property
     def __src_fullpath(self):
-        return self.__fullpath(self.src)
+        return self.src.absolute()
 
     @property
     def __dst_fullpath(self):
-        return self.__fullpath(self.dst)
-
-    def __fullpath(self, path):
-        return os.path.abspath(os.path.expanduser(path.replace('/', os.path.sep)))
+        return self.dst.absolute()
 
     def execute(self):
         msg = 'Create symbolic link from `{}\' to `{}\''
@@ -56,12 +53,12 @@ class SymlinkCommand(object):
 
     def __do_symlink(self):
         try:
-            if os.path.islink(self.__dst_fullpath):
+            if self.__dst_fullpath.is_symlink():
                 prompt = '`{}\' already exists. replace `{}\'? [yn]: '.format(
                     self.__dst_fullpath, self.__dst_fullpath)
                 ans = input(prompt)
                 if ans.lower().startswith('y'):
-                    os.remove(self.__dst_fullpath)
+                    self.__dst_fullpath.unlink()
                 else:
                     return
             self.__symlink()
@@ -69,11 +66,8 @@ class SymlinkCommand(object):
             print('{}: {}'.format(self.dst, e.strerror), file=sys.stderr)
 
     def __symlink(self):
-        if sys.platform == 'win32':
-            target_is_directory = os.path.isdir(self.__src_fullpath)
-            os.symlink(self.__src_fullpath, self.__dst_fullpath, target_is_directory)
-        else:
-            os.symlink(self.__src_fullpath, self.__dst_fullpath)
+        target_is_directory = self.__src_fullpath.is_dir()
+        self.__dst_fullpath.symlink_to(self.__src_fullpath, target_is_directory)
 
 
 class HomeFileCollection(object):
@@ -85,7 +79,7 @@ class HomeFileCollection(object):
     def __iter__(self):
         files = self._files
         directories = (self._src, self._dst)
-        return ((os.path.join(src, basename), os.path.join(dst, basename))
+        return ((src / basename, dst / basename)
                 for ((src, dst), basename) in product((directories, ), files))
 
 
@@ -108,7 +102,7 @@ class MappedFileCollection(object):
 
     def __iter__(self):
         for f, t in self.__mapped_files:
-            yield os.path.join(self.__src, f), os.path.join(self.__dst, t)
+            yield self.__src / f, self.__dst / t
 
 
 class MappedFileSymlinkingCommands(object):
@@ -135,26 +129,25 @@ class MappedFileSymlinkingCommands(object):
 
 class Symlink(object):
     def __init__(self, dotfiles, home, platform):
-        self._dotfiles = dotfiles
-        self._home = home
+        self._dotfiles = Path(dotfiles)
+        self._home = Path(home)
         self._platform = platform
 
-        self._config_file = os.path.join(self._dotfiles, 'dotfav.config')
-        self._src = os.path.join(self._dotfiles, 'home')
+        self._config_file = self._dotfiles / 'dotfav.config'
+        self._src = self._dotfiles / 'home'
         self._dst = self._home
 
     def run(self):
         commands = []
 
-        files = self._list_home_targets()
-
-        if files.is_success():
-            commands.extend(self._home_file_symlinking_commands(files.value))
-        else:
+        if not self._src.is_dir():
             print('`{}\': {}'.format(src, files.value.strerror), file=sys.stderr)
             sys.exit(1)
 
-        if os.path.isfile(self._config_file):
+        children = map(lambda p: p.name, self._src.iterdir())
+        commands.extend(self._home_file_symlinking_commands(children))
+
+        if self._config_file.is_file():
             commands.extend(self._mapped_file_symlinking_commands())
 
         for command in commands:
@@ -164,24 +157,21 @@ class Symlink(object):
         return HomeFileSymlinkingCommands(self._src, self._dst, files)
 
     def _mapped_file_symlinking_commands(self):
-        with open(self._config_file) as f:
+        with self._config_file.open() as f:
             config = json.load(f)
             return MappedFileSymlinkingCommands(self._src,
                                                 self._dst,
                                                 config,
                                                 self._platform)
 
-    def _list_home_targets(self):
-        try:
-            return Success(os.listdir(self._src))
-        except FileNotFoundError as e:
-            return Fail(e)
-
-
 
 def main(dotfiles=None, home=None, platform=None):
-    dotfiles = '~/.dotfav/dotfiles' if dotfiles is None else dotfiles
+    dotfiles = os.path.join('~', '.dotfav', 'dotfiles') if dotfiles is None else dotfiles
+    dotfiles = os.path.expanduser(dotfiles)
+
     home = '~' if home is None else home
+    home = os.path.expanduser(home)
+
     platform = sys.platform if platform is None else platform
 
     command = Symlink(dotfiles, home, platform)
