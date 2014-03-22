@@ -6,7 +6,7 @@ import json
 from itertools import product
 from itertools import chain
 
-from pathlib import Path
+from dotfav.path import Path
 
 
 class InstallCommandGenerator(object):
@@ -35,39 +35,27 @@ class CommandError(Exception):
 
 class SymlinkCommand(object):
     def __init__(self, src, dst):
-        self.src = src
-        self.dst = dst
-
-    @property
-    def __src_fullpath(self):
-        return self.src.absolute()
-
-    @property
-    def __dst_fullpath(self):
-        return self.dst.absolute()
+        self._src = src
+        self._dst = dst
 
     def execute(self):
         msg = 'Create symbolic link from `{}\' to `{}\''
-        print(msg.format(self.src, self.dst), file=sys.stderr)
+        print(msg.format(self._src, self._dst), file=sys.stderr)
         self.__do_symlink()
 
     def __do_symlink(self):
         try:
-            if self.__dst_fullpath.is_symlink():
+            if self._dst.is_symlink():
                 prompt = '`{}\' already exists. replace `{}\'? [yn]: '.format(
-                    self.__dst_fullpath, self.__dst_fullpath)
+                    self._dst, self._dst)
                 ans = input(prompt)
                 if ans.lower().startswith('y'):
-                    self.__dst_fullpath.unlink()
+                    self._dst.unlink()
                 else:
                     return
-            self.__symlink()
+            self._dst.symlink_to(self._src)
         except OSError as e:
-            print('{}: {}'.format(self.dst, e.strerror), file=sys.stderr)
-
-    def __symlink(self):
-        target_is_directory = self.__src_fullpath.is_dir()
-        self.__dst_fullpath.symlink_to(self.__src_fullpath, target_is_directory)
+            print('{}: {}'.format(self._dst, e.strerror), file=sys.stderr)
 
 
 class HomeFileCollection(object):
@@ -167,10 +155,7 @@ class Symlink(object):
 
 def main(dotfiles=None, home=None, platform=None):
     dotfiles = os.path.join('~', '.dotfav', 'dotfiles') if dotfiles is None else dotfiles
-    dotfiles = os.path.expanduser(dotfiles)
-
     home = '~' if home is None else home
-    home = os.path.expanduser(home)
 
     platform = sys.platform if platform is None else platform
 
