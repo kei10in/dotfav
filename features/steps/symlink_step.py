@@ -24,9 +24,14 @@ def step_impl(context):
     pass
 
 
-@given('dotfiles home directory contains a file')
-def step_impl(context):
-    create_file_into_dotfiles_home('file')
+@given('dotfiles home directory contains a file named "{filename}"')
+def step_impl(context, filename):
+    create_file_into_dotfiles_home(filename)
+
+
+@given('dotfiles home directory contains a directory named "{dirname}"')
+def step_impl(context, dirname):
+    create_directory_into_dotfiles_home(dirname)
 
 
 @given('dotfiles home directory contains a directory')
@@ -37,11 +42,6 @@ def step_impl(context):
 @given('dotfiles contains config file')
 def step_impl(context):
     create_config_file(context.text)
-
-
-@given('dotfiles home directory contains a file named "{filename}"')
-def step_impl(context, filename):
-    create_file_into_dotfiles_home(test_dotfiles_home / filename)
 
 
 @when('we run dotfav symlink')
@@ -62,25 +62,21 @@ def step_impl(context):
                 and path.resolve() in test_dotfiles_home.rglob('*')]) == 0
 
 
-@then('dotfav symlink creates a symlinked file')
-def step_impl(context):
-    assert any([path.is_file() and is_symlink_of_dotfiles_home(path)
-                for path in test_home.iterdir()])
+@then('"{name}" in home symlinks to "{target}" in dotfiles home')
+def step_impl(context, name, target):
+    path = test_home / name
+    target_path = test_dotfiles_home / target
+    assert path.is_symlink()
+    assert path.resolve() == target_path
 
 
-@then('dotfav symlink creates a symlinked directory')
-def step_impl(context):
-    assert any([path.is_dir() and is_symlink_of_dotfiles_home(path)
-                for path in test_home.iterdir()])
+@then('"{filename}" in home is file')
+def step_impl(context, filename):
+    path = test_home / filename
+    assert path.is_file()
 
 
-@then('dotfav symlink creates a symlink "{src}" to "{dst}"')
-def step_impl(context, src, dst):
-    src = test_dotfiles_home / src
-    dst = test_home / dst
-    assert dst.is_symlink()
-    assert dst.resolve() == src
-
-
-def is_symlink_of_dotfiles_home(path):
-    return (path.is_symlink() and path.resolve() in test_dotfiles_home.rglob('*'))
+@then('"{dirname}" in home is directory')
+def step_impl(context, dirname):
+    path = test_home / dirname
+    assert path.is_dir()
