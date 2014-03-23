@@ -16,7 +16,7 @@ def cleanup_temp_directory():
 def step_impl(context):
     cleanup_temp_directory()
     create_test_temp_directories()
-    assert test_dotfiles_home.is_dir()
+    assert dotfiles_home.is_dir()
 
 
 @given('dotfiles home directory contains no files')
@@ -46,37 +46,37 @@ def step_impl(context):
 
 @when('we run dotfav symlink')
 def step_impl(context):
-    run_dotfav(command='symlink', home=str(test_home), dotfiles=str(test_dotfiles))
+    run_dotfav(command='symlink', home=str(home), dotfiles=str(dotfiles))
 
 
 @when('we run dotfav symlink at platform "{platform}"')
 def step_impl(context, platform):
-    run_dotfav(command='symlink', home=str(test_home), dotfiles=str(test_dotfiles),
+    run_dotfav(command='symlink', home=str(home), dotfiles=str(dotfiles),
                platform=platform)
 
 
 @then('no files are symlinked')
 def step_impl(context):
-    assert len([path for path in test_home.iterdir()
+    assert len([path for path in home.iterdir()
                 if path.is_symlink()
-                and path.resolve() in test_dotfiles_home.rglob('*')]) == 0
+                and path.resolve() in dotfiles_home.rglob('*')]) == 0
 
 
 @then('"{name}" in home symlinks to "{target}" in dotfiles home')
 def step_impl(context, name, target):
-    path = test_home / name
-    target_path = test_dotfiles_home / target
+    path = home / name
+    target_path = dotfiles_home / target
     assert path.is_symlink()
     assert path.resolve() == target_path
 
 
 @then('"{filename}" in home is file')
 def step_impl(context, filename):
-    path = test_home / filename
+    path = home / filename
     assert path.is_file()
 
 
 @then('"{dirname}" in home is directory')
 def step_impl(context, dirname):
-    path = test_home / dirname
+    path = home / dirname
     assert path.is_dir()

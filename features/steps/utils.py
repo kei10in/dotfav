@@ -7,33 +7,33 @@ import dotfav
 
 
 test_temp = Path(__file__).parent / 'temp'
-test_home = test_temp / 'home'
-test_dotfiles = test_temp / 'dotfiles'
-test_dotfiles_home = test_dotfiles / 'home'
-test_dotfiles_config = test_dotfiles / 'dotfav.config'
+home = test_temp / 'home'
+dotfiles = test_temp / 'dotfiles'
+dotfiles_home = dotfiles / 'home'
+dotfiles_config = dotfiles / 'dotfav.config'
 
 
 def create_test_temp_directories():
     test_temp.mkdir()
-    test_home.mkdir()
-    test_dotfiles.mkdir()
-    test_dotfiles_home.mkdir()
+    home.mkdir()
+    dotfiles.mkdir()
+    dotfiles_home.mkdir()
 
 
 def create_file_into_dotfiles_home(filename):
-    filepath = test_dotfiles_home / filename
+    filepath = dotfiles_home / filename
     f = filepath.open(mode='w')
     f.close()
 
 
 def create_directory_into_dotfiles_home(dirpath):
-    dirpath = test_dotfiles_home / dirpath
+    dirpath = dotfiles_home / dirpath
     dirpath.mkdir()
 
 
 def create_config_file(config):
     config = json.loads(config)
-    with test_dotfiles_config.open(mode='w') as f:
+    with dotfiles_config.open(mode='w') as f:
         json.dump(config, f)
 
 
