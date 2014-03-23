@@ -32,6 +32,7 @@ def create_directory_into_dotfiles_home(dirpath):
 
 
 def create_config_file(config):
+    config = json.loads(config)
     with test_dotfiles_config.open(mode='w') as f:
         json.dump(config, f)
 

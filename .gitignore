@@ -1,5 +1,5 @@
 # tempolary directory for test
-tests/temp
+features/steps/temp
 
 *.py[cod]
 
