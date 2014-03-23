@@ -26,17 +26,12 @@ def step_impl(context):
 
 @given('dotfiles home directory contains a file named "{filename}"')
 def step_impl(context, filename):
-    create_file_into_dotfiles_home(filename)
+    (dotfiles_home / filename).touch()
 
 
 @given('dotfiles home directory contains a directory named "{dirname}"')
 def step_impl(context, dirname):
-    create_directory_into_dotfiles_home(dirname)
-
-
-@given('dotfiles home directory contains a directory')
-def step_impl(context):
-    create_directory_into_dotfiles_home('directory')
+    (dotfiles_home / dirname).mkdir()
 
 
 @given('dotfiles contains config file')

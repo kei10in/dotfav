@@ -20,17 +20,6 @@ def create_test_temp_directories():
     dotfiles_home.mkdir()
 
 
-def create_file_into_dotfiles_home(filename):
-    filepath = dotfiles_home / filename
-    f = filepath.open(mode='w')
-    f.close()
-
-
-def create_directory_into_dotfiles_home(dirpath):
-    dirpath = dotfiles_home / dirpath
-    dirpath.mkdir()
-
-
 def create_config_file(config):
     config = json.loads(config)
     with dotfiles_config.open(mode='w') as f:
