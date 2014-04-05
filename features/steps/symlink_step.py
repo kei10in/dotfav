@@ -2,6 +2,8 @@
 
 import shutil
 
+from hamcrest import *
+
 from utils import *
 
 
@@ -16,7 +18,7 @@ def cleanup_temp_directory():
 def step_impl(context):
     cleanup_temp_directory()
     create_test_temp_directories()
-    assert dotfiles_home.is_dir()
+    assert_that(dotfiles_home.is_dir(), 'dotfiles_home must be directory')
 
 
 @given('dotfiles home directory contains no files')
@@ -52,26 +54,27 @@ def step_impl(context, platform):
 
 @then('no files are symlinked')
 def step_impl(context):
-    assert len([path for path in home.iterdir()
-                if path.is_symlink()
-                and path.resolve() in dotfiles_home.rglob('*')]) == 0
+    symlink_path = [p.resolve() for p in home.iterdir() if p.is_symlink()]
+    dotfiles = dotfiles_home.rglob('*')
+    assert_that(symlink_path,
+                any_of(is_(empty()), is_not(contains(is_in(dotfiles)))))
 
 
 @then('"{name}" in home symlinks to "{target}" in dotfiles home')
 def step_impl(context, name, target):
     path = home / name
     target_path = dotfiles_home / target
-    assert path.is_symlink()
-    assert path.resolve() == target_path
+    assert_that(path.is_symlink(), 'path must be symlink file')
+    assert_that(path.resolve(), equal_to(target_path))
 
 
 @then('"{filename}" in home is file')
 def step_impl(context, filename):
     path = home / filename
-    assert path.is_file()
+    assert_that(path.is_file(), 'path must be file')
 
 
 @then('"{dirname}" in home is directory')
 def step_impl(context, dirname):
     path = home / dirname
-    assert path.is_dir()
+    assert_that(path.is_dir(), 'path must be directory')
