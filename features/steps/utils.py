@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*_
 
 import json
+from subprocess import *
 from pathlib import Path
 
 import dotfav
@@ -27,7 +28,17 @@ def create_config_file(config):
 
 
 def run_dotfav(command, dotfiles, home, platform=None):
-    args = ['dotfav', command, '--dotfiles', dotfiles, '--home', home]
+    cmd = ['python', '-m', 'dotfav', command, '--dotfiles', dotfiles, '--home', home]
     if platform is not None:
-        args.extend(['--platform', platform])
-    dotfav.main(args)
+        cmd.extend(['--platform', platform])
+
+    with Popen(cmd, stdout=PIPE, stderr=PIPE) as process:
+        try:
+            output, error = process.communicate()
+        except:
+            process.kill()
+            process.wait()
+            raise
+        retcode = process.poll()
+        if retcode:
+            raise CalledProcessError(retcode, process.args, output=output)
