@@ -30,11 +30,21 @@ class DotFav(object):
         parser_symlink.add_argument('--home', help='specify home directory')
         parser_symlink.add_argument('--platform', help='specify platform')
 
+        parser_unlink = subparsers.add_parser('unlink', help='remove symlinked files')
+        parser_unlink.set_defaults(func=DotFav.unlink)
+        parser_unlink.add_argument('--dotfiles', help='specify dotfiles directory')
+        parser_unlink.add_argument('--home', help='specify home directory')
+        parser_unlink.add_argument('--platform', help='specify platform')
+
         return parser
 
     @staticmethod
     def symlink(dotfiles=None, home=None, platform=None, **kwds):
         dotfav.symlink.main(dotfiles, home, platform)
+
+    @staticmethod
+    def unlink(dotfiles=None, home=None, platform=None, **kwds):
+        pass
 
     def run(self):
         self._args.func(**vars(self._args))

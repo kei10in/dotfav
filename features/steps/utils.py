@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*_
 
+import sys
+import shutil
 import json
 from subprocess import *
 from pathlib import Path
@@ -12,6 +14,13 @@ home = test_temp / 'home'
 dotfiles = test_temp / 'dotfiles'
 dotfiles_home = dotfiles / 'home'
 dotfiles_config = dotfiles / 'dotfav.config'
+
+
+def cleanup_temp_directory():
+    if test_temp.is_dir():
+        shutil.rmtree(str(test_temp))
+    elif test_temp.is_file():
+        test_temp.unlink()
 
 
 def create_test_temp_directories():
@@ -28,7 +37,7 @@ def create_config_file(config):
 
 
 def run_dotfav(command, dotfiles, home, platform=None):
-    cmd = ['python', '-m', 'dotfav', command, '--dotfiles', dotfiles, '--home', home]
+    cmd = [sys.executable, '-m', 'dotfav', command, '--dotfiles', dotfiles, '--home', home]
     if platform is not None:
         cmd.extend(['--platform', platform])
 

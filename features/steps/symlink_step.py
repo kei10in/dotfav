@@ -1,29 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import shutil
-
 from hamcrest import *
 
 from utils import *
 
-
-def cleanup_temp_directory():
-    if test_temp.is_dir():
-        shutil.rmtree(str(test_temp))
-    elif test_temp.is_file():
-        test_temp.unlink()
-
-
-@given('there are dotfiles home directory in dotfiles')
-def step_impl(context):
-    cleanup_temp_directory()
-    create_test_temp_directories()
-    assert_that(dotfiles_home.is_dir(), 'dotfiles_home must be directory')
-
-
-@given('dotfiles home directory contains no files')
-def step_impl(context):
-    pass
 
 
 @given('dotfiles home directory contains a file named "{filename}"')
@@ -39,17 +19,6 @@ def step_impl(context, dirname):
 @given('dotfiles contains config file')
 def step_impl(context):
     create_config_file(context.text)
-
-
-@when('we run dotfav symlink')
-def step_impl(context):
-    run_dotfav(command='symlink', home=str(home), dotfiles=str(dotfiles))
-
-
-@when('we run dotfav symlink at platform "{platform}"')
-def step_impl(context, platform):
-    run_dotfav(command='symlink', home=str(home), dotfiles=str(dotfiles),
-               platform=platform)
 
 
 @then('no files are symlinked')
