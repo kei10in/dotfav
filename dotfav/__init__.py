@@ -3,6 +3,7 @@
 import sys
 import argparse
 
+import dotfav.init
 import dotfav.symlink
 import dotfav.unlink
 
@@ -25,6 +26,13 @@ class DotFav(object):
         parser_help = subparsers.add_parser('help', help='show help')
         parser_help.set_defaults(func=parser.print_help)
 
+        parser_init = subparsers.add_parser('init', help='initialize dotfav')
+        parser_init.set_defaults(func=DotFav.init)
+        parser_init.add_argument('--dotfiles', help='specify dotfiles directory')
+        parser_init.add_argument('--home', help='specify home directory')
+        parser_init.add_argument('--platform', help='specify platform')
+        parser_init.add_argument('default_dotfiles', help='default dotfiles directory')
+
         parser_symlink = subparsers.add_parser('symlink', help='create symbolic links')
         parser_symlink.set_defaults(func=DotFav.symlink)
         parser_symlink.add_argument('--dotfiles', help='specify dotfiles directory')
@@ -38,6 +46,10 @@ class DotFav(object):
         parser_unlink.add_argument('--platform', help='specify platform')
 
         return parser
+
+    @staticmethod
+    def init(default_dotfiles, home=None, **kwds):
+        dotfav.init.main(default_dotfiles, home)
 
     @staticmethod
     def symlink(dotfiles=None, home=None, platform=None, **kwds):
