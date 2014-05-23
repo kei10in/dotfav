@@ -10,6 +10,11 @@ class Path(object):
         self._org_path = str(s)
         self._path = pathlib.Path(os.path.expanduser(self._org_path))
 
+    def __eq__(self, other):
+        if isinstance(other, Path):
+            return self._path == other._path
+        return False
+
     def __str__(self):
         return str(self._org_path)
 
@@ -47,3 +52,11 @@ class Path(object):
 
     def open(self, *args, **kwds):
         return self._path.open(*args, **kwds)
+
+    @property
+    def realpath(self):
+        return Path(os.path.realpath(str(self._path)))
+
+    def rglob(self, pattern):
+        return map(lambda p: Path(p), self._path.rglob(pattern))
+

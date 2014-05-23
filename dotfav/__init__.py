@@ -4,6 +4,7 @@ import sys
 import argparse
 
 import dotfav.symlink
+import dotfav.unlink
 
 __version__ = '0.1'
 
@@ -43,8 +44,8 @@ class DotFav(object):
         dotfav.symlink.main(dotfiles, home, platform)
 
     @staticmethod
-    def unlink(dotfiles=None, home=None, platform=None, **kwds):
-        pass
+    def unlink(dotfiles=None, home=None, **kwds):
+        dotfav.unlink.main(dotfiles, home)
 
     def run(self):
         self._args.func(**vars(self._args))
