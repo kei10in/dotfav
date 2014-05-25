@@ -94,15 +94,15 @@ class MappedFileCollection(object):
 
 
 class MappedFileSymlinkingCommands(object):
-    def __init__(self, src, dst, config, platform):
+    def __init__(self, src, dst, maps, platform):
         self._src = src
         self._dst = dst
-        self._config = config
+        self._maps = maps
         self._platform = platform
 
     def __iter__(self):
         mapped_files = self.__reverse_inner_tuple(
-            self.__filter_platform(self._config, self._platform))
+            self.__filter_platform(self._maps, self._platform))
         targets = MappedFileCollection(self._src, self._dst, mapped_files)
         return iter(InstallCommandGenerator(targets))
 
@@ -111,8 +111,8 @@ class MappedFileSymlinkingCommands(object):
         return (tuple(reversed(t)) for t in iterable)
 
     @staticmethod
-    def __filter_platform(config, platform):
-        return chain(*(c['target'].items() for c in config if platform in c['os']))
+    def __filter_platform(maps, platform):
+        return chain(*(c['target'].items() for c in maps if platform in c['os']))
 
 
 class Symlink(object):
@@ -121,7 +121,7 @@ class Symlink(object):
         self._home = Path(home)
         self._platform = platform
 
-        self._config_file = self._dotfiles / 'dotfav.config'
+        self._map_file = self._dotfiles / 'dotfav.config'
         self._src = self._dotfiles / 'home'
         self._dst = self._home
 
@@ -135,7 +135,7 @@ class Symlink(object):
         children = map(lambda p: p.name, self._src.iterdir())
         commands.extend(self._home_file_symlinking_commands(children))
 
-        if self._config_file.is_file():
+        if self._map_file.is_file():
             commands.extend(self._mapped_file_symlinking_commands())
 
         for command in commands:
@@ -145,11 +145,11 @@ class Symlink(object):
         return HomeFileSymlinkingCommands(self._src, self._dst, files)
 
     def _mapped_file_symlinking_commands(self):
-        with self._config_file.open() as f:
-            config = json.load(f)
+        with self._map_file.open() as f:
+            maps = json.load(f)
             return MappedFileSymlinkingCommands(self._src,
                                                 self._dst,
-                                                config,
+                                                maps,
                                                 self._platform)
 
 
