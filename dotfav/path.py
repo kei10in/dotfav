@@ -28,6 +28,10 @@ class Path(object):
     def name(self):
         return self._path.name
 
+    @property
+    def parent(self):
+        return Path(os.path.dirname(self._org_path))
+
     def exists(self):
         return self._path.exists()
 
@@ -47,11 +51,20 @@ class Path(object):
         target_is_directory = target.is_dir()
         return self._path.absolute().symlink_to(target._path.absolute(), target_is_directory)
 
+    def mkdir(self, mode=0o777, parents=False):
+        return self._path.mkdir(mode, parents)
+
+    def touch(self, mode=0o777, exist_ok=True):
+        return self._path.touch(mode, exist_ok)
+
     def unlink(self):
         return self._path.unlink()
 
     def open(self, *args, **kwds):
         return self._path.open(*args, **kwds)
+
+    def resolve(self):
+        return self._path.resolve()
 
     @property
     def realpath(self):

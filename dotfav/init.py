@@ -3,22 +3,24 @@
 import json
 
 from dotfav.path import Path
+import dotfav.config
 
 
 class Iinitialize(object):
-    def __init__(self, default_dotfiles, home):
+    def __init__(self, default_dotfiles, config):
         self._default_dotfiles = Path(default_dotfiles)
-        self._config_path = Path(home) / '.dotfav' / 'config'
+        self._config = config
 
     def run(self):
-        config = { 'dotfiles': str(self._default_dotfiles) }
-        with self._config_path.open('w') as f:
-            json.dump(config, f)
+        self._config.dotfiles = self._default_dotfiles.resolve()
 
 
 def main(default_dotfiles, home=None):
-    home = '~' if home is None else home
-    command = Iinitialize(default_dotfiles, home)
+    home = Path('~' if home is None else home)
+    config_path = home / '.dotfav' / 'config'
+    config = dotfav.config.fromJsonFile(config_path)
+
+    command = Iinitialize(default_dotfiles, config)
     command.run()
 
 
