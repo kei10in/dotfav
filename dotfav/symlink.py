@@ -7,6 +7,7 @@ from itertools import product
 from itertools import chain
 
 from dotfav.path import Path
+import dotfav.config
 
 
 class InstallCommandGenerator(object):
@@ -154,8 +155,10 @@ class Symlink(object):
 
 
 def main(dotfiles=None, home=None, platform=None):
-    dotfiles = os.path.join('~', '.dotfav', 'dotfiles') if dotfiles is None else dotfiles
     home = '~' if home is None else home
+    config_path = Path(home) / '.dotfav' / 'config'
+    config = dotfav.config.fromJsonFile(config_path)
+    dotfiles = config.dotfiles if dotfiles is None else dotfiles
 
     platform = sys.platform if platform is None else platform
 

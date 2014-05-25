@@ -21,6 +21,9 @@ def step_impl(context):
 def step_impl(context):
     context.home_files = list(home.iterdir())
 
+@given('dotfav is initialized')
+def step_impl(context):
+    run_dotfav('init', None, str(home), None, str(dotfiles))
 
 @when('we run dotfav symlink')
 def step_impl(context):
