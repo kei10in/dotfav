@@ -3,6 +3,7 @@
 import os
 
 from dotfav.path import Path
+import dotfav.config
 
 
 
@@ -28,8 +29,10 @@ class Unlink(object):
 
 
 def main(dotfiles=None, home=None):
-    dotfiles = os.path.join('~', '.dotfav', 'dotfiles') if dotfiles is None else dotfiles
     home = '~' if home is None else home
+    config_path = Path(home) / '.dotfav' / 'config'
+    config = dotfav.config.fromJsonFile(config_path)
+    dotfiles = config.dotfiles if dotfiles is None else dotfiles
 
     command = Unlink(dotfiles, home)
     command.run()
