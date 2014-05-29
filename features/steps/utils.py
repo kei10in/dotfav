@@ -36,12 +36,9 @@ def create_config_file(config):
         json.dump(config, f)
 
 
-def run_dotfav(command, dotfiles=dotfiles, home=home, platform=None, *args):
+def run_dotfav(command, platform=None, *args):
     cmd = [sys.executable, '-m', 'dotfav', command]
-    if dotfiles is not None:
-        cmd.extend(['--dotfiles', dotfiles])
-    if home is not None:
-        cmd.extend(['--home', home])
+    cmd.extend(['--home', str(home)])
     if platform is not None:
         cmd.extend(['--platform', platform])
     cmd.extend(args)

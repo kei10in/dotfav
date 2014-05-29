@@ -28,20 +28,17 @@ class DotFav(object):
 
         parser_init = subparsers.add_parser('init', help='initialize dotfav')
         parser_init.set_defaults(func=DotFav.init)
-        parser_init.add_argument('--dotfiles', help='specify dotfiles directory')
         parser_init.add_argument('--home', help='specify home directory')
         parser_init.add_argument('--platform', help='specify platform')
         parser_init.add_argument('default_dotfiles', help='default dotfiles directory')
 
         parser_symlink = subparsers.add_parser('symlink', help='create symbolic links')
         parser_symlink.set_defaults(func=DotFav.symlink)
-        parser_symlink.add_argument('--dotfiles', help='specify dotfiles directory')
         parser_symlink.add_argument('--home', help='specify home directory')
         parser_symlink.add_argument('--platform', help='specify platform')
 
         parser_unlink = subparsers.add_parser('unlink', help='remove symlinked files')
         parser_unlink.set_defaults(func=DotFav.unlink)
-        parser_unlink.add_argument('--dotfiles', help='specify dotfiles directory')
         parser_unlink.add_argument('--home', help='specify home directory')
         parser_unlink.add_argument('--platform', help='specify platform')
 
@@ -52,12 +49,12 @@ class DotFav(object):
         dotfav.init.main(default_dotfiles, home)
 
     @staticmethod
-    def symlink(dotfiles=None, home=None, platform=None, **kwds):
-        dotfav.symlink.main(dotfiles, home, platform)
+    def symlink(home=None, platform=None, **kwds):
+        dotfav.symlink.main(home, platform)
 
     @staticmethod
-    def unlink(dotfiles=None, home=None, **kwds):
-        dotfav.unlink.main(dotfiles, home)
+    def unlink(home=None, **kwds):
+        dotfav.unlink.main(home)
 
     def run(self):
         self._args.func(**vars(self._args))

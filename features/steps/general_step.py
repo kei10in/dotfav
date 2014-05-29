@@ -23,19 +23,18 @@ def step_impl(context):
 
 @given('dotfav is initialized')
 def step_impl(context):
-    run_dotfav('init', None, str(home), None, str(dotfiles))
+    run_dotfav('init', None, str(dotfiles))
 
 @when('we run dotfav symlink')
 def step_impl(context):
-    run_dotfav(command='symlink', home=str(home), dotfiles=str(dotfiles))
+    run_dotfav(command='symlink')
 
 
 @when('we run dotfav symlink at platform "{platform}"')
 def step_impl(context, platform):
-    run_dotfav(command='symlink', home=str(home), dotfiles=str(dotfiles),
-               platform=platform)
+    run_dotfav(command='symlink', platform=platform)
 
 
 @when('we run dotfav unlink')
 def step_impl(context):
-    run_dotfav(command='unlink', home=str(home), dotfiles=str(dotfiles))
+    run_dotfav(command='unlink')

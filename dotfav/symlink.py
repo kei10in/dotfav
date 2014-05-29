@@ -154,11 +154,11 @@ class Symlink(object):
                                                 self._platform)
 
 
-def main(dotfiles=None, home=None, platform=None):
+def main(home=None, platform=None):
     home = '~' if home is None else home
     config_path = Path(home) / '.dotfav' / 'config'
     config = dotfav.config.fromJsonFile(config_path)
-    dotfiles = config.dotfiles if dotfiles is None else dotfiles
+    dotfiles = config.dotfiles
 
     platform = sys.platform if platform is None else platform
 
