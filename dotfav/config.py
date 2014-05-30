@@ -6,6 +6,11 @@ import abc
 from dotfav.path import Path
 
 
+class ConfigFileNotFound(Exception):
+    def __init__(self, e):
+        self.exception = e
+
+
 class Config(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
@@ -55,5 +60,5 @@ def fromJsonFile(filepath):
         with filepath.open(encoding='utf-8') as f:
             obj = json.load(f)
             return JsonConfig(obj, filepath)
-    except FileNotFoundError:
-        return JsonConfig({}, filepath)
+    except FileNotFoundError as e:
+        raise ConfigFileNotFound(e)

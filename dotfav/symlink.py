@@ -155,12 +155,18 @@ class Symlink(object):
 
 
 def main(home=None, platform=None):
-    home = '~' if home is None else home
-    config_path = Path(home) / '.dotfav' / 'config'
-    config = dotfav.config.fromJsonFile(config_path)
-    dotfiles = config.dotfiles
+    try:
+        home = '~' if home is None else home
+        config_path = Path(home) / '.dotfav' / 'config'
+        config = dotfav.config.fromJsonFile(config_path)
+        dotfiles = config.dotfiles
 
-    platform = sys.platform if platform is None else platform
+        platform = sys.platform if platform is None else platform
 
-    command = Symlink(dotfiles, home, platform)
-    command.run()
+        command = Symlink(dotfiles, home, platform)
+        command.run()
+    except dotfav.config.ConfigFileNotFound as e:
+        print('Not initialized yet.', file=sys.stderr)
+        print('Run `dotfav init <path>\' first.', file=sys.stderr)
+
+

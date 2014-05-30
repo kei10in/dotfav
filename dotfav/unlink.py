@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os
+import sys
 
 from dotfav.path import Path
 import dotfav.config
@@ -29,10 +29,14 @@ class Unlink(object):
 
 
 def main(home=None):
-    home = '~' if home is None else home
-    config_path = Path(home) / '.dotfav' / 'config'
-    config = dotfav.config.fromJsonFile(config_path)
-    dotfiles = config.dotfiles
+    try:
+        home = '~' if home is None else home
+        config_path = Path(home) / '.dotfav' / 'config'
+        config = dotfav.config.fromJsonFile(config_path)
+        dotfiles = config.dotfiles
 
-    command = Unlink(dotfiles, home)
-    command.run()
+        command = Unlink(dotfiles, home)
+        command.run()
+    except dotfav.config.ConfigFileNotFound as e:
+        print('Not initialized yet.', file=sys.stderr)
+        print('Run `dotfav init <path>\' first.', file=sys.stderr)
