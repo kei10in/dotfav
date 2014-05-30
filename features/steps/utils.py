@@ -6,7 +6,7 @@ import json
 from subprocess import *
 from pathlib import Path
 
-import dotfav
+from hamcrest import *
 
 
 test_temp = Path(__file__).parent / 'temp'
@@ -51,5 +51,7 @@ def run_dotfav(command, platform=None, *args):
             process.wait()
             raise
         retcode = process.poll()
-        if retcode:
-            raise CalledProcessError(retcode, process.args, output=output)
+        assert_that(
+            retcode, equal_to(0),
+            'Process Failed:\nOutput: {}\nError: {}'.format(
+                output.decode('utf-8'), error.decode('utf-8')))
