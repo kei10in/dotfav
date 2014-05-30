@@ -5,6 +5,7 @@ import abc
 
 from dotfav.path import Path
 
+
 class Config(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
@@ -43,6 +44,10 @@ class JsonConfig(Config):
             self._filepath.touch()
         with self._filepath.open(encoding='utf-8', mode='w') as f:
             json.dump(self._obj, f)
+
+
+def create_json_config(filepath):
+    return JsonConfig({}, filepath)
 
 
 def fromJsonFile(filepath):

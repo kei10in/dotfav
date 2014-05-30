@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import json
-
 from dotfav.path import Path
 import dotfav.config
 
@@ -18,9 +16,7 @@ class Iinitialize(object):
 def main(default_dotfiles, home=None):
     home = Path('~' if home is None else home)
     config_path = home / '.dotfav' / 'config'
-    config = dotfav.config.fromJsonFile(config_path)
+    config = dotfav.config.create_json_config(config_path)
 
     command = Iinitialize(default_dotfiles, config)
     command.run()
-
-
