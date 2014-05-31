@@ -1,0 +1,8 @@
+language: python
+python:
+  - "3.3"
+install:
+  - pip -q install behave PyHamcrest
+  - python setup.py -q develop
+script:
+  - behave -f progress --junit features/
