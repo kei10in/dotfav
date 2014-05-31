@@ -5,4 +5,4 @@ install:
   - pip -q install behave PyHamcrest
   - python setup.py -q develop
 script:
-  - behave -f progress --junit features/
+  - behave -f progress features/
