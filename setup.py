@@ -14,6 +14,10 @@ import dotfav
 long_desc = '''
 '''
 
+requirements = []
+if (3, 3) <= sys.version_info[:2] < (3, 4):
+    requirements.append('pathlib')
+
 
 class PyTest(TestCommand):
 
@@ -49,7 +53,7 @@ setup(
             'dotfav=dotfav:main',
         ],
     },
-    install_requires=['pathlib'],
+    install_requires=requirements,
     tests_require=['pytest'],
     cmdclass = { 'test': PyTest },
 )
