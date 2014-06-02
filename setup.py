@@ -11,8 +11,10 @@ import sys
 import dotfav
 
 
-long_desc = '''
-'''
+def long_description():
+    with open('README.rst', encoding='utf-8') as f:
+        return f.read()
+
 
 requirements = []
 if (3, 3) <= sys.version_info[:2] < (3, 4):
@@ -37,15 +39,18 @@ setup(
     name="dotfav",
     version=dotfav.__version__,
     description='dotfiles manager',
-    long_description=long_desc,
+    long_description=long_description(),
     url='http://github.com/kei10in/dotfav',
     author='kei10in',
     author_email='',
     license='MIT',
     classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3.3',
     ],
+    keywords=['console'],
     platforms='any',
     packages=find_packages(exclude=["tests*"]),
     entry_points={
